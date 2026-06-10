@@ -1,0 +1,10 @@
+venv/
+.env
+*.mp3
+*.wav
+*.m4a
+backend/test*.pdf
+backend/test*.jpg
+backend/test*.png
+__pycache__/
+*.pyc
