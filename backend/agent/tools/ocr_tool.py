@@ -3,9 +3,8 @@ import pytesseract
 from PIL import Image
 from pytesseract import Output
 
-pytesseract.pytesseract.tesseract_cmd=(
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-)
+import os
+pytesseract.pytesseract.tesseract_cmd = os.getenv("TESSERACT_CMD", "/usr/bin/tesseract")
 
 def extract_image(file_bytes:bytes)->dict:
     try:

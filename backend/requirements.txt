@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-multipart
+pymupdf
+pytesseract
+pillow
+groq
+youtube-transcript-api
+python-dotenv
+pytest
