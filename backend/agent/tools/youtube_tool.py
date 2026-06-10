@@ -21,7 +21,10 @@ def fetch_youtube_transcript(text:str)->dict:
         video_id=matches[0]
 
         ytt = YouTubeTranscriptApi()
-        transcript_data = ytt.fetch(video_id)
+        try:
+            transcript_data = ytt.fetch(video_id)
+        except Exception:
+            transcript_data = ytt.fetch(video_id, languages=["en","en-US","en-GB"])
 
         transcript=" ".join(
             entry.text
