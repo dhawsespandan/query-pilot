@@ -32,7 +32,7 @@ def _groq_chat(messages:list,retries:int=2)->str:
     for attempt in range(retries+1):
         try:
             return client.chat.completions.create(
-                model="llama-3.3-70b-versatile",messages=messages,
+                model="llama-3.3-70b-versatile",messages=messages,timeout=30,
             ).choices[0].message.content.strip()
         except Exception as e:
             if attempt<retries:time.sleep(2)
@@ -55,7 +55,10 @@ def run(query:str,extracted_inputs:dict)->dict:
         yt=fetch_youtube_transcript(combined_text)
         if yt["found"]:
             result=summarize(yt["transcript"]);result["video_id"]=yt["video_id"]
-        else:result={"answer":"No YouTube URL found in the provided content."}
+        elif combined_text.strip():
+            result=summarize(combined_text)
+        else:
+            result={"answer":"No YouTube URL found in the provided content."}
     elif "summarizer" in plan:result=summarize(combined_text)
     elif "sentiment" in plan:result=analyze_sentiment(combined_text)
     elif "code_explainer" in plan:result=explain_code(combined_text)

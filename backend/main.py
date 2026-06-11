@@ -34,9 +34,15 @@ async def chat(query:str=Form(...),files:Optional[List[UploadFile]]=File(default
                 content=await file.read()
                 if len(content)>MAX_MB*1024*1024:
                     raise HTTPException(400,detail=f"{file.filename} exceeds {MAX_MB}MB limit")
-                if ext=="pdf":extracted_inputs[file.filename]=extract_pdf(content).get("text","")
-                elif ext in("jpg","jpeg","png"):extracted_inputs[file.filename]=extract_image(content).get("text","")
-                elif ext in("mp3","wav","m4a"):extracted_inputs[file.filename]=transcribe_audio(content,file.filename).get("transcript","")
+                if ext=="pdf":
+                    extracted_inputs[file.filename]=extract_pdf(content).get("text","")
+                elif ext in("jpg","jpeg","png"):
+                    extracted_inputs[file.filename]=extract_image(content).get("text","")
+                elif ext in("mp3","wav","m4a"):
+                    audio_result=transcribe_audio(content,file.filename)
+                    transcript=audio_result.get("transcript","")
+                    duration=audio_result.get("duration_seconds",0)
+                    extracted_inputs[file.filename]=f"{transcript}\n[Duration: {duration}s]" if duration else transcript
             except HTTPException:raise
             except Exception as e:extracted_inputs[file.filename]=f"[Extraction failed: {e}]"
     try:

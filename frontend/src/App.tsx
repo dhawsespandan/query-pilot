@@ -12,6 +12,24 @@ interface Message {
 
 const BACKEND = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000"
 
+const formatResult = (result: unknown): string => {
+  if (typeof result === "string") return result
+  if (!result || typeof result !== "object") return String(result)
+  const r = result as Record<string, unknown>
+  const parts: string[] = []
+  if (r.one_liner) parts.push(`📌 ${r.one_liner}`)
+  if (Array.isArray(r.bullets) && r.bullets.length) parts.push(r.bullets.map((b: unknown) => `• ${b}`).join("\n"))
+  if (r.five_sentences) parts.push(`\n${r.five_sentences}`)
+  if (r.label) parts.push(`Sentiment: ${r.label} (confidence: ${r.confidence})\n${r.justification}`)
+  if (r.explanation) parts.push(`Explanation: ${r.explanation}`)
+  if (r.bugs) parts.push(`Bugs: ${r.bugs}`)
+  if (r.time_complexity) parts.push(`Time Complexity: ${r.time_complexity}`)
+  if (r.same_topic) parts.push(`Same Topic: ${r.same_topic}\nCommon Themes: ${r.common_themes}\nDifferences: ${r.differences}\n${r.summary}`)
+  if (r.answer) parts.push(String(r.answer))
+  if (r.error) parts.push(`⚠️ Error: ${r.error}`)
+  return parts.length ? parts.join("\n\n") : JSON.stringify(result, null, 2)
+}
+
 export default function App() {
   const [messages, setMessages] = useState<Message[]>([])
   const [query, setQuery] = useState("")
@@ -34,9 +52,7 @@ export default function App() {
 
       const resultText = data.follow_up
         ? `❓ ${data.follow_up}`
-        : typeof data.result === "string"
-        ? data.result
-        : JSON.stringify(data.result, null, 2)
+        : formatResult(data.result)
 
       setMessages(prev => [...prev, {
         role: "agent",
@@ -45,13 +61,15 @@ export default function App() {
         extractedText: data.extracted_text,
         followUp: data.follow_up,
       }])
+
+      setQuery("")
+      if (!data.follow_up) setFiles([])
     } catch {
       setMessages(prev => [...prev, { role: "agent", content: "Error: Could not reach backend." }])
+      setQuery("")
+    } finally {
+      setLoading(false)
     }
-
-    setQuery("")
-    setFiles([])
-    setLoading(false)
   }
 
   return (

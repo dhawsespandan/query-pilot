@@ -2,6 +2,7 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 from pathlib import Path
+import re
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[3] / ".env")
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -33,13 +34,11 @@ Text:
         bullets = []
         five_sentences = ""
 
-        for line in raw.splitlines():
-            if line.startswith("ONE_LINER:"):
-                one_liner = line.replace("ONE_LINER:", "").strip()
-            elif line.startswith("- "):
-                bullets.append(line.strip())
-            elif line.startswith("FIVE_SENTENCES:"):
-                five_sentences = line.replace("FIVE_SENTENCES:", "").strip()
+        one_liner = re.search(r"ONE_LINER:\s*(.+?)(?=\nBULLETS:|\Z)", raw, re.DOTALL)
+        five_sentences = re.search(r"FIVE_SENTENCES:\s*(.+?)$", raw, re.DOTALL)
+        bullets = re.findall(r"^- (.+)", raw, re.MULTILINE)
+        one_liner = one_liner.group(1).strip() if one_liner else ""
+        five_sentences = five_sentences.group(1).strip() if five_sentences else ""
 
         return {
             "one_liner": one_liner,

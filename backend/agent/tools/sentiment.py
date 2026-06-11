@@ -2,6 +2,7 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 from pathlib import Path
+import re
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[3] / ".env")
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -26,13 +27,12 @@ Text:
         raw = response.choices[0].message.content
         label = confidence = justification = ""
 
-        for line in raw.splitlines():
-            if line.startswith("LABEL:"):
-                label = line.replace("LABEL:", "").strip()
-            elif line.startswith("CONFIDENCE:"):
-                confidence = float(line.replace("CONFIDENCE:", "").strip())
-            elif line.startswith("JUSTIFICATION:"):
-                justification = line.replace("JUSTIFICATION:", "").strip()
+        label = re.search(r"LABEL:\s*(.+?)(?=\nCONFIDENCE:|\Z)", raw, re.DOTALL)
+        confidence_match = re.search(r"CONFIDENCE:\s*([0-9.]+)", raw)
+        justification = re.search(r"JUSTIFICATION:\s*(.+?)$", raw, re.DOTALL)
+        label = label.group(1).strip() if label else ""
+        confidence = float(confidence_match.group(1)) if confidence_match else 0.0
+        justification = justification.group(1).strip() if justification else ""
 
         return {
             "label": label,

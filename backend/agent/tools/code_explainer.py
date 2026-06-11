@@ -2,6 +2,7 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 from pathlib import Path
+import re
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[3] / ".env")
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -26,13 +27,12 @@ Code:
         raw = response.choices[0].message.content
         explanation = bugs = time_complexity = ""
 
-        for line in raw.splitlines():
-            if line.startswith("EXPLANATION:"):
-                explanation = line.replace("EXPLANATION:", "").strip()
-            elif line.startswith("BUGS:"):
-                bugs = line.replace("BUGS:", "").strip()
-            elif line.startswith("TIME_COMPLEXITY:"):
-                time_complexity = line.replace("TIME_COMPLEXITY:", "").strip()
+        explanation = re.search(r"EXPLANATION:\s*(.+?)(?=\nBUGS:|\Z)", raw, re.DOTALL)
+        bugs = re.search(r"BUGS:\s*(.+?)(?=\nTIME_COMPLEXITY:|\Z)", raw, re.DOTALL)
+        time_complexity = re.search(r"TIME_COMPLEXITY:\s*(.+?)$", raw, re.DOTALL)
+        explanation = explanation.group(1).strip() if explanation else ""
+        bugs = bugs.group(1).strip() if bugs else ""
+        time_complexity = time_complexity.group(1).strip() if time_complexity else ""
 
         return {
             "explanation": explanation,
