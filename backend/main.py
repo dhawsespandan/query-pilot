@@ -7,9 +7,7 @@ from pathlib import Path
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1]/".env")
 
-from agent.tools.pdf_tool import extract_pdf
-from agent.tools.ocr_tool import extract_image
-from agent.tools.audio_tool import transcribe_audio
+from agent.extractor import extract_file
 from agent import orchestrator
 
 app=FastAPI()
@@ -34,15 +32,7 @@ async def chat(query:str=Form(...),files:Optional[List[UploadFile]]=File(default
                 content=await file.read()
                 if len(content)>MAX_MB*1024*1024:
                     raise HTTPException(400,detail=f"{file.filename} exceeds {MAX_MB}MB limit")
-                if ext=="pdf":
-                    extracted_inputs[file.filename]=extract_pdf(content).get("text","")
-                elif ext in("jpg","jpeg","png"):
-                    extracted_inputs[file.filename]=extract_image(content).get("text","")
-                elif ext in("mp3","wav","m4a"):
-                    audio_result=transcribe_audio(content,file.filename)
-                    transcript=audio_result.get("transcript","")
-                    duration=audio_result.get("duration_seconds",0)
-                    extracted_inputs[file.filename]=f"{transcript}\n[Duration: {duration}s]" if duration else transcript
+                extracted_inputs[file.filename]=extract_file(content,file.filename,ext)
             except HTTPException:raise
             except Exception as e:extracted_inputs[file.filename]=f"[Extraction failed: {e}]"
     try:

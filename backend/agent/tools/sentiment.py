@@ -22,10 +22,10 @@ Text:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
+            timeout=30,
         )
 
         raw = response.choices[0].message.content
-        label = confidence = justification = ""
 
         label = re.search(r"LABEL:\s*(.+?)(?=\nCONFIDENCE:|\Z)", raw, re.DOTALL)
         confidence_match = re.search(r"CONFIDENCE:\s*([0-9.]+)", raw)
@@ -34,19 +34,10 @@ Text:
         confidence = float(confidence_match.group(1)) if confidence_match else 0.0
         justification = justification.group(1).strip() if justification else ""
 
-        return {
-            "label": label,
-            "confidence": confidence,
-            "justification": justification,
-        }
+        return {"label": label, "confidence": confidence, "justification": justification}
 
     except Exception as e:
-        return {
-            "label": "",
-            "confidence": 0.0,
-            "justification": "",
-            "error": str(e),
-        }
+        return {"label": "", "confidence": 0.0, "justification": "", "error": str(e)}
 
 if __name__ == "__main__":
     sample = "I absolutely loved the product. It exceeded all my expectations and the customer service was outstanding."

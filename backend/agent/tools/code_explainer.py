@@ -22,10 +22,10 @@ Code:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
+            timeout=30,
         )
 
         raw = response.choices[0].message.content
-        explanation = bugs = time_complexity = ""
 
         explanation = re.search(r"EXPLANATION:\s*(.+?)(?=\nBUGS:|\Z)", raw, re.DOTALL)
         bugs = re.search(r"BUGS:\s*(.+?)(?=\nTIME_COMPLEXITY:|\Z)", raw, re.DOTALL)
@@ -34,19 +34,10 @@ Code:
         bugs = bugs.group(1).strip() if bugs else ""
         time_complexity = time_complexity.group(1).strip() if time_complexity else ""
 
-        return {
-            "explanation": explanation,
-            "bugs": bugs,
-            "time_complexity": time_complexity,
-        }
+        return {"explanation": explanation, "bugs": bugs, "time_complexity": time_complexity}
 
     except Exception as e:
-        return {
-            "explanation": "",
-            "bugs": "",
-            "time_complexity": "",
-            "error": str(e),
-        }
+        return {"explanation": "", "bugs": "", "time_complexity": "", "error": str(e)}
 
 if __name__ == "__main__":
     sample = """

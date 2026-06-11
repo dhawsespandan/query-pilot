@@ -21,6 +21,7 @@ Rules:
 - If the query asks to compare two inputs → cross_input
 - If the query mentions a YouTube URL or asks to summarize a video → youtube
 - If the content is code and user asks to explain → explain_code
+- If an audio file is present and user wants a summary or transcript → audio_summary
 - If the intent is unclear → return: FOLLOW_UP: <one short clarifying question>
 
 Query: {query}
@@ -59,6 +60,15 @@ def run(query:str,extracted_inputs:dict)->dict:
             result=summarize(combined_text)
         else:
             result={"answer":"No YouTube URL found in the provided content."}
+    elif "audio_tool" in plan:
+        result=summarize(combined_text)
+        audio_keys=[k for k in extracted_inputs if k.rsplit(".",1)[-1].lower() in ("mp3","wav","m4a")]
+        duration_line=""
+        for k in audio_keys:
+            v=extracted_inputs[k]
+            if "[Duration:" in v:
+                duration_line=v.split("[Duration:")[-1].replace("]","").strip()
+        if duration_line:result["duration_seconds"]=duration_line
     elif "summarizer" in plan:result=summarize(combined_text)
     elif "sentiment" in plan:result=analyze_sentiment(combined_text)
     elif "code_explainer" in plan:result=explain_code(combined_text)

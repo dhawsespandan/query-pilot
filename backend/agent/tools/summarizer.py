@@ -26,13 +26,10 @@ Text:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
+            timeout=30,
         )
 
         raw = response.choices[0].message.content
-
-        one_liner = ""
-        bullets = []
-        five_sentences = ""
 
         one_liner = re.search(r"ONE_LINER:\s*(.+?)(?=\nBULLETS:|\Z)", raw, re.DOTALL)
         five_sentences = re.search(r"FIVE_SENTENCES:\s*(.+?)$", raw, re.DOTALL)
@@ -47,12 +44,7 @@ Text:
         }
 
     except Exception as e:
-        return {
-            "one_liner": "",
-            "bullets": [],
-            "five_sentences": "",
-            "error": str(e),
-        }
+        return {"one_liner": "", "bullets": [], "five_sentences": "", "error": str(e)}
 
 if __name__ == "__main__":
     sample = "Artificial intelligence is transforming industries worldwide. Companies are using AI to automate tasks, improve efficiency, and create new products. Machine learning models can now recognize images, translate languages, and generate text. However, concerns about job displacement and ethical issues remain. Governments are beginning to regulate AI development to ensure safety and fairness."
