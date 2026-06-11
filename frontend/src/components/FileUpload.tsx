@@ -3,22 +3,38 @@ interface Props {
   setFiles: (f: File[]) => void
 }
 
+const iconFor = (name: string) => {
+  const ext = name.rsplit ? name.rsplit(".", 1)[1] : name.split(".").pop() ?? ""
+  if (["jpg", "jpeg", "png"].includes(ext)) return "🖼"
+  if (ext === "pdf") return "📄"
+  if (["mp3", "wav", "m4a"].includes(ext)) return "🎵"
+  return "📎"
+}
+
 export default function FileUpload({ files, setFiles }: Props) {
   return (
-    <div style={{ marginBottom: 8 }}>
-      <label style={{ fontSize: 13, color: "#374151" }}>
-        Attach files (PDF, Image, Audio):&nbsp;
+    <div className="file-upload">
+      <label className="file-label">
+        <span className="file-label-text">📎 Attach files</span>
         <input
           type="file"
           multiple
           accept=".pdf,.jpg,.jpeg,.png,.mp3,.wav,.m4a"
           onChange={e => e.target.files && setFiles(Array.from(e.target.files))}
-          style={{ fontSize: 13 }}
+          className="file-input-hidden"
         />
       </label>
       {files.length > 0 && (
-        <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
-          📎 {files.map(f => f.name).join(", ")}
+        <div className="file-chips">
+          {files.map((f, i) => (
+            <span key={i} className="file-chip">
+              {iconFor(f.name)} {f.name}
+              <button
+                className="file-chip-remove"
+                onClick={() => setFiles(files.filter((_, j) => j !== i))}
+              >×</button>
+            </span>
+          ))}
         </div>
       )}
     </div>
