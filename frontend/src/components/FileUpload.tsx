@@ -4,7 +4,7 @@ interface Props {
 }
 
 const iconFor = (name: string) => {
-  const ext = name.rsplit ? name.rsplit(".", 1)[1] : name.split(".").pop() ?? ""
+  const ext = name.split(".").pop() ?? ""
   if (["jpg", "jpeg", "png"].includes(ext)) return "🖼"
   if (ext === "pdf") return "📄"
   if (["mp3", "wav", "m4a"].includes(ext)) return "🎵"
