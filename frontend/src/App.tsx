@@ -53,15 +53,24 @@ export default function App() {
   const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const messagesRef = useRef<Message[]>([])
 
   useEffect(() => {
     if (!loading) inputRef.current?.focus()
   }, [loading])
 
+  // Keep ref in sync so handleSend always reads the latest length
+  useEffect(() => {
+    messagesRef.current = messages
+  }, [messages])
+
   const handleSend = async () => {
     if (!query.trim() && files.length === 0) return
 
     const userMsg: Message = { role: "user", content: query }
+    // agentMsgIndex = current length + 1 (for the user msg) + 0-offset = length + 1
+    // Using ref to avoid stale closure on first message (messages state not yet updated)
+    const agentMsgIndex = messagesRef.current.length + 1
     setMessages(prev => [...prev, userMsg])
     setLoading(true)
     setQuery("")
@@ -71,7 +80,6 @@ export default function App() {
     files.forEach(f => formData.append("files", f))
 
     // Add a streaming placeholder agent message
-    const agentMsgIndex = messages.length + 1
     setMessages(prev => [...prev, {
       role: "agent",
       content: "",
